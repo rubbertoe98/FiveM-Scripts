@@ -1,4 +1,4 @@
 # FiveM-Scripts
-Compilation of my publically released code
+Compilation of my publicly released code
 
 Feel free to make improvements with PRs
