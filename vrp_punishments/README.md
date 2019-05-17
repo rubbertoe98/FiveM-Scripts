@@ -19,13 +19,15 @@ CREATE TABLE cmg_warnings (
 	warning_date DATE,
 	reason VARCHAR(2000),
 	PRIMARY KEY (warning_id)
-)```
+)
+```
 
 ###### 3) Go to vrp/modules/admin.lua 
 and find the ch_kick function (CTRL-F "ch_kick")
 Place the "vRP.kick" line and put this line just before it
 ```lua
-saveKickLog(id,GetPlayerName(player),reason)```
+saveKickLog(id,GetPlayerName(player),reason)
+```
 
 
 ###### 4) Replace the ch_ban function with the following code
