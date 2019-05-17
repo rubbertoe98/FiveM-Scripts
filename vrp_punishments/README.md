@@ -55,7 +55,7 @@ local function ch_ban(player,choice)
 end
 ```
 
-###### 5) Place sv_warningsystem in vrp/modules/ and cl_warningsystem in vrp/client/
+###### 5) Place sv_warningsystem.lua in vrp/modules/ and cl_warningsystem.lua in vrp/client/
 
 ###### 6) Update your vrp/__resource.lua by putting adding the file names cl_warningsystem.lua & sv_warningsystem.lua in the appropriate section
 
