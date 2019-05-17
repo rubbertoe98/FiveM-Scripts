@@ -40,15 +40,15 @@ local function ch_ban(player,choice)
       id = parseInt(id)
       vRP.prompt(player,"Reason: ","",function(player,reason)
         local source = vRP.getUserSource(id)
-		vRP.prompt(player,"Hours: ","",function(player,duration)
-			if tonumber(duration) then
-				vRPclient.notify(player,{"banned user "..id})
-				saveBanLog(id,GetPlayerName(player),reason,duration)
-				vRP.ban(source,reason)
-			else
-				vRPclient.notify(player,{"~r~Invalid ban time!"})
-			end
-		  end)
+	  vRP.prompt(player,"Hours: ","",function(player,duration)
+	    if tonumber(duration) then
+	      vRPclient.notify(player,{"banned user "..id})
+	      saveBanLog(id,GetPlayerName(player),reason,duration)
+	      vRP.ban(source,reason)
+    	    else
+		vRPclient.notify(player,{"~r~Invalid ban time!"})
+            end
+	end)
       end)
     end)
   end
