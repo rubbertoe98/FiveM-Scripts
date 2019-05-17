@@ -24,7 +24,7 @@ CREATE TABLE cmg_warnings (
 
 ###### 3) Go to vrp/modules/admin.lua 
 and find the ch_kick function (CTRL-F "ch_kick")
-Place the "vRP.kick" line and put this line just before it
+Place this line just before the line starting with "vRP.kick".
 ```lua
 saveKickLog(id,GetPlayerName(player),reason)
 ```
