@@ -61,10 +61,10 @@ end
 
 ## How to use:
 
-F10 to open up the warning sytem
-/showwarnings [user_id] to show someone's punishment log (i.e /showwarnings 1)
-/warn to give a warning
-Kicks & Bans are automatically added to someones punishment log when you ban/kick them through your phone
+* F10 to open up the warning sytem
+* /showwarnings [user_id] to show someone's punishment log (i.e /showwarnings 1)
+* /warn to give a warning
+* Kicks & Bans are automatically added to someones punishment log when you ban/kick them through your phone
 
 Feel free to make improvements with PRs
 
