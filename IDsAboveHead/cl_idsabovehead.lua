@@ -5,7 +5,7 @@ playerDistances = {}
 
 Citizen.CreateThread(function()
     while true do
-        for id = 0, 64 do 
+        for id = 0, 255 do 
 			if NetworkIsPlayerActive(id) then
 				if GetPlayerPed(id) ~= GetPlayerPed(-1) then
 					if (playerDistances[id] < disPlayerNames) then
@@ -25,7 +25,7 @@ end)
 
 Citizen.CreateThread(function()
     while true do
-        for id = 0, 64 do
+        for id = 0, 255 do
             if GetPlayerPed(id) ~= GetPlayerPed(-1) then
                 x1, y1, z1 = table.unpack(GetEntityCoords(GetPlayerPed(-1), true))
                 x2, y2, z2 = table.unpack(GetEntityCoords(GetPlayerPed(id), true))
