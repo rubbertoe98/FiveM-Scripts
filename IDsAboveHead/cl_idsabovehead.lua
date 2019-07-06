@@ -4,6 +4,7 @@ playerDistances = {}
 
 
 Citizen.CreateThread(function()
+    Wait(50)
     while true do
         for id = 0, 255 do 
 			if NetworkIsPlayerActive(id) then
