@@ -51,7 +51,7 @@ end)
 function getCMGWarnings(user_id,source) 
 	cmgwarningstables = exports['GHMattiMySQL']:QueryResult("SELECT * FROM cmg_warnings WHERE user_id = @uid", {uid = user_id})
 	print("Triggering CMG:showWarningsOfUser")
-	print(dump(cmgwarningstables))
+	--print(dump(cmgwarningstables))
 	for warningID,warningTable in pairs(cmgwarningstables) do
 		--print(warningTable["warning_date"])
 		date = warningTable["warning_date"]
