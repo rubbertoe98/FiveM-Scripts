@@ -1,8 +1,8 @@
 
 local holdingHostageInProgress = false
 local hostageAllowedWeapons = {
-	"WEAPON_PISTOL",
-	"WEAPON_COMBATPISTOL",
+	`WEAPON_PISTOL`,
+	`WEAPON_COMBATPISTOL`,
 	--etc add guns you want
 }
 
@@ -10,9 +10,9 @@ RegisterCommand("takehostage",function(source, args)
 	ClearPedSecondaryTask(GetPlayerPed(-1))
 	DetachEntity(GetPlayerPed(-1), true, false)
 	for i=1, #hostageAllowedWeapons do
-		if HasPedGotWeapon(GetPlayerPed(-1), GetHashKey(hostageAllowedWeapons[i]), false) then
+		if HasPedGotWeapon(GetPlayerPed(-1), hostageAllowedWeapons[i], false) then
 			canTakeHostage = true 
-			foundWeapon = GetHashKey(hostageAllowedWeapons[i])
+			foundWeapon = hostageAllowedWeapons[i]
 			break
 		end
 	end
