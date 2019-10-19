@@ -180,7 +180,19 @@ end
 
 Citizen.CreateThread(function()
 	while true do 
-		if holdingHostage then 
+		if holdingHostage then
+			if GetEntityHealth(GetPlayerPed(-1)) <= 102 then --You may need to edit this death check for your server
+				print("release this mofo")			
+				holdingHostage = false
+				holdingHostageInProgress = false 
+				--ClearPedSecondaryTask(GetPlayerPed(-1))
+				--DetachEntity(GetPlayerPed(-1), true, false)
+				local closestPlayer = GetClosestPlayer(2)
+				target = GetPlayerServerId(closestPlayer)
+				TriggerServerEvent("cmg3_animations:stop",target)
+				Wait(100)
+				releaseHostage()
+			end 
 			DisableControlAction(0,24,true) -- disable attack
 			DisableControlAction(0,25,true) -- disable aim
 			DisableControlAction(0,47,true) -- disable weapon
