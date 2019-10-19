@@ -142,18 +142,8 @@ AddEventHandler('cmg3_animations:cl_stop', function()
 	DetachEntity(GetPlayerPed(-1), true, false)
 end)
 
-function GetPlayers()
-    local players = {}
-
-	for _, i in ipairs(GetActivePlayers()) do
-        table.insert(players, i)
-    end
-
-    return players
-end
-
 function GetClosestPlayer(radius)
-    local players = GetPlayers()
+    local players = GetActivePlayers()
     local closestDistance = -1
     local closestPlayer = -1
     local ply = GetPlayerPed(-1)
