@@ -1,11 +1,11 @@
 
 RegisterServerEvent('cmg3_animations:sync')
-AddEventHandler('cmg3_animations:sync', function(target, animationLib,animationLib2, animation, animation2, distans, distans2, height,targetSrc,length,spin,controlFlagSrc,controlFlagTarget,animFlagTarget,attachFlag)
+AddEventHandler('cmg3_animations:sync', function(target, animations, attach)
 	print("got to srv cmg3_animations:sync")
-	print("got that fucking attach flag as: " .. tostring(attachFlag))
-	TriggerClientEvent('cmg3_animations:syncTarget', targetSrc, source, animationLib2, animation2, distans, distans2, height, length,spin,controlFlagTarget,animFlagTarget,attachFlag)
-	print("triggering to target: " .. tostring(targetSrc))
-	TriggerClientEvent('cmg3_animations:syncMe', source, animationLib, animation,length,controlFlagSrc,animFlagTarget)
+	print("got that fucking attach flag as: " .. tostring(attach))
+	TriggerClientEvent('cmg3_animations:syncTarget', target, source, animations.target, attach)
+	print("triggering to target: " .. tostring(target))
+	TriggerClientEvent('cmg3_animations:syncMe', source, animations.source)
 end)
 
 RegisterServerEvent('cmg3_animations:stop')
