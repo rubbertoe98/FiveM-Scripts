@@ -76,11 +76,7 @@ AddEventHandler('cmg3_animations:syncTarget', function(target, animationLib, ani
 	else 
 		holdingHostageInProgress = true
 	end
-	if beingHeldHostage then 
-		beingHeldHostage = false 
-	else 
-		beingHeldHostage = true 
-	end  
+	beingHeldHostage = true 
 	print("triggered cmg3_animations:syncTarget")
 	RequestAnimDict(animationLib)
 
@@ -107,8 +103,7 @@ AddEventHandler('cmg3_animations:syncTarget', function(target, animationLib, ani
 		TaskPlayAnim(playerPed, animationLib, animation2, 8.0, -8.0, length, controlFlag, 0, false, false, false)
 		beingHeldHostage = false 
 	else
-		TaskPlayAnim(playerPed, animationLib, animation2, 8.0, -8.0, length, controlFlag, 0, false, false, false)
-		beingHeldHostage = false	
+		TaskPlayAnim(playerPed, animationLib, animation2, 8.0, -8.0, length, controlFlag, 0, false, false, false)	
 	end
 end)
 
