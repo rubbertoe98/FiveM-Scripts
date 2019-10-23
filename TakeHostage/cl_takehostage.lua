@@ -11,14 +11,16 @@ RegisterCommand("takehostage",function(source, args)
 	DetachEntity(GetPlayerPed(-1), true, false)
 	for i=1, #hostageAllowedWeapons do
 		if HasPedGotWeapon(GetPlayerPed(-1), GetHashKey(hostageAllowedWeapons[i]), false) then
-			canTakeHostage = true 
-			foundWeapon = GetHashKey(hostageAllowedWeapons[i])
-			break
+			if GetAmmoInPedWeapon(GetPlayerPed(-1), GetHashKey(hostageAllowedWeapons[i])) > 0 then
+				canTakeHostage = true 
+				foundWeapon = GetHashKey(hostageAllowedWeapons[i])
+				break
+			end 					
 		end
 	end
 
 	if not canTakeHostage then 
-		drawNativeNotification("You need a pistol to take a hostage at gunpoint!")
+		drawNativeNotification("You need a pistol with ammo to take a hostage at gunpoint!")
 	end
 
 	if not holdingHostageInProgress and canTakeHostage then		
