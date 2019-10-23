@@ -181,7 +181,7 @@ end
 Citizen.CreateThread(function()
 	while true do 
 		if holdingHostage then
-			if GetEntityHealth(GetPlayerPed(-1)) <= 102 then --You may need to edit this death check for your server
+			if IsEntityDead(GetPlayerPed(-1)) then
 				print("release this mofo")			
 				holdingHostage = false
 				holdingHostageInProgress = false 
