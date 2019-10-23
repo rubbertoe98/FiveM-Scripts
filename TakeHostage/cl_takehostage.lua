@@ -1,5 +1,7 @@
+-----------------------------------------------------------------
+--TakeHostage by Robbster, do not redistrbute without permission--
+------------------------------------------------------------------
 
-local holdingHostageInProgress = false
 local hostageAllowedWeapons = {
 	`WEAPON_PISTOL`,
 	`WEAPON_COMBATPISTOL`,
@@ -54,24 +56,28 @@ local attachment = {
 	rotation = vector3(0.5, 0.5, 0.0),
 }
 
-RegisterCommand("takehostage",function(source, args)
+local holdingHostageInProgress = false
+
+function takeHostage(src, args, raw)
 	local playerPed = PlayerPedId()
 	local canTakeHostage = false
 	local weapon = nil
 
 	ClearPedSecondaryTask(playerPed)
 	DetachEntity(playerPed, true, false)
-
+          
 	for i = 1, #hostageAllowedWeapons do
 		if HasPedGotWeapon(playerPed, hostageAllowedWeapons[i], false) then
-			canTakeHostage = true 
-			weapon = hostageAllowedWeapons[i]
-			break
+			if GetAmmoInPedWeapon(playerPed, hostageAllowedWeapons[i]) > 0 then
+				canTakeHostage = true 
+				weapon = hostageAllowedWeapons[i]
+				break
+			end 					
 		end
 	end
 
 	if not canTakeHostage then 
-		drawNativeNotification("You need a pistol to take a hostage at gunpoint!")
+		drawNativeNotification("You need a pistol with ammo to take a hostage at gunpoint!")
 	end
 
 	if not holdingHostageInProgress and canTakeHostage then		
@@ -85,21 +91,15 @@ RegisterCommand("takehostage",function(source, args)
 			print("triggering cmg3_animations:sync")
 			TriggerServerEvent('cmg3_animations:sync', targetId, animations.take, true)
 		else
-			print("[CMG Anim] No player nearby")
+			--print("[CMG Anim] No player nearby")
 			drawNativeNotification("No one nearby to take as hostage!")
 		end 
-	-- else
-	-- 	holdingHostageInProgress = false
-	-- 	holdingHostage = false
-	-- 	holdingHostageInProgress = false 	
-	-- 	ClearPedSecondaryTask(GetPlayerPed(-1))
-	-- 	DetachEntity(GetPlayerPed(-1), true, false)
-	-- 	local closestPlayer = GetClosestPlayer(2)
-	-- 	target = GetPlayerServerId(closestPlayer)
-	-- 	TriggerServerEvent("cmg3_animations:stop",target)
 	end
 	canTakeHostage = false 
-end,false)
+end 
+
+RegisterCommand("takehostage", takeHostage)
+RegisterCommand("th", takeHostage)
 
 RegisterNetEvent('cmg3_animations:syncTarget')
 AddEventHandler('cmg3_animations:syncTarget', function(target, animation, attach)
@@ -110,12 +110,9 @@ AddEventHandler('cmg3_animations:syncTarget', function(target, animation, attach
 	else 
 		holdingHostageInProgress = true
 	end
-	if beingHeldHostage then 
-		beingHeldHostage = false 
-	else 
-		beingHeldHostage = true 
-	end  
-	print("triggered cmg3_animations:syncTarget")
+
+	beingHeldHostage = true 
+	--print("triggered cmg3_animations:syncTarget")
 	RequestAnimDict(animation.dictionary)
 
 	while not HasAnimDictLoaded(animation.dictionary) do
@@ -123,10 +120,10 @@ AddEventHandler('cmg3_animations:syncTarget', function(target, animation, attach
 	end
 
 	if attach then 
-		print("attaching entity")
+		--print("attaching entity")
 		AttachEntityToEntity(playerPed, targetPed, 0, attachment.offset.x, attachment.offset.y, attachment.offset.z, attachment.rotation.x, attachment.rotation.y, attachment.rotation.z, false, false, false, false, 2, false)
 	else 
-		print("not attaching entity")
+		--print("not attaching entity")
 	end
 
 	if animation.animation == "victim_fail" then 
@@ -140,14 +137,13 @@ AddEventHandler('cmg3_animations:syncTarget', function(target, animation, attach
 		beingHeldHostage = false 
 	else
 		TaskPlayAnim(playerPed, animation.dictionary, animation.animation, 8.0, -8.0, animation.length, animation.flag, 0, false, false, false)
-		beingHeldHostage = false	
 	end
 end)
 
 RegisterNetEvent('cmg3_animations:syncMe')
 AddEventHandler('cmg3_animations:syncMe', function(animation)
 	local playerPed = PlayerPedId()
-	print("triggered cmg3_animations:syncMe")
+	--print("triggered cmg3_animations:syncMe")
 	ClearPedSecondaryTask(playerPed)
 	RequestAnimDict(animation.dictionary)
 	while not HasAnimDictLoaded(animation.dictionary) do
@@ -156,6 +152,7 @@ AddEventHandler('cmg3_animations:syncMe', function(animation)
 	--Wait(500)
 
 	TaskPlayAnim(playerPed, animation.dictionary, animation.animation, 8.0, -8.0, animation.length, animation.flag, 0, false, false, false)
+
 	if animation == "perp_fail" then 
 		SetPedShootsAtCoord(playerPed, 0.0, 0.0, 0.0, 0)
 		holdingHostageInProgress = false 
@@ -208,12 +205,10 @@ Citizen.CreateThread(function()
 	while true do 
 		if holdingHostage then
 			local playerPed = PlayerPedId()
-			if IsEntityDead(playerPed) then --You may need to edit this death check for your server
-				print("release this mofo")			
+			if IsEntityDead(playerPed) then
+				--print("release this mofo")			
 				holdingHostage = false
 				holdingHostageInProgress = false 
-				--ClearPedSecondaryTask(GetPlayerPed(-1))
-				--DetachEntity(GetPlayerPed(-1), true, false)
 				local closestPlayer = GetClosestPlayer(2)
 				local targetId = GetPlayerServerId(closestPlayer)
 				TriggerServerEvent("cmg3_animations:stop", targetId)
@@ -228,22 +223,18 @@ Citizen.CreateThread(function()
 			local playerCoords = GetEntityCoords(playerPed)
 			DrawText3D(playerCoords.x,playerCoords.y,playerCoords.z,"Press [G] to release, [H] to kill")
 			if IsDisabledControlJustPressed(0,47) then --release
-				print("release this mofo")			
+				--print("release this mofo")			
 				holdingHostage = false
 				holdingHostageInProgress = false 
-				--ClearPedSecondaryTask(GetPlayerPed(-1))
-				--DetachEntity(GetPlayerPed(-1), true, false)
 				local closestPlayer = GetClosestPlayer(2)
 				local targetId = GetPlayerServerId(closestPlayer)
 				TriggerServerEvent("cmg3_animations:stop", targetId)
 				Wait(100)
 				releaseHostage()
 			elseif IsDisabledControlJustPressed(0,74) then --kill 
-				print("kill this mofo")				
+				--print("kill this mofo")				
 				holdingHostage = false
-				holdingHostageInProgress = false 	
-				--ClearPedSecondaryTask(GetPlayerPed(-1))
-				--DetachEntity(GetPlayerPed(-1), true, false)		
+				holdingHostageInProgress = false 		
 				local closestPlayer = GetClosestPlayer(2)
 				local targetId = GetPlayerServerId(closestPlayer)
 				TriggerServerEvent("cmg3_animations:stop", targetId)				
