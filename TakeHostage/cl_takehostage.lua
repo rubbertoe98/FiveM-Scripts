@@ -1,5 +1,6 @@
 -----------------------------------------------------------------
 --TakeHostage by Robbster, do not redistrbute without permission--
+-- TR Translate by C Y L E X
 ------------------------------------------------------------------
 
 local hostageAllowedWeapons = {
@@ -32,7 +33,7 @@ function takeHostage()
 	end
 
 	if not canTakeHostage then 
-		drawNativeNotification("You need a pistol with ammo to take a hostage at gunpoint!")
+		drawNativeNotification("Silah zoruyla rehin almak için bir tabancaya ihtiyacınız var!")
 	end
 
 	if not holdingHostageInProgress and canTakeHostage then		
@@ -63,8 +64,8 @@ function takeHostage()
 			--print("triggering cmg3_animations:sync")
 			TriggerServerEvent('cmg3_animations:sync', closestPlayer, lib,lib2, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget,attachFlag)
 		else
-			--print("[CMG Anim] No player nearby")
-			drawNativeNotification("No one nearby to take as hostage!")
+			--print("[CMG Anim] Yakında oyuncu yok")
+			drawNativeNotification("Yakında rehin alınacak biri bulunamadı.")
 		end 
 	end
 	canTakeHostage = false 
@@ -196,7 +197,7 @@ Citizen.CreateThread(function()
 			DisableControlAction(0,58,true) -- disable weapon
 			DisablePlayerFiring(GetPlayerPed(-1),true)
 			local playerCoords = GetEntityCoords(GetPlayerPed(-1))
-			DrawText3D(playerCoords.x,playerCoords.y,playerCoords.z,"Press [G] to release, [H] to kill")
+			DrawText3D(playerCoords.x,playerCoords.y,playerCoords.z,"[G] Serbest Bırak, [H] Öldür")
 			if IsDisabledControlJustPressed(0,47) then --release
 				--print("release this mofo")			
 				holdingHostage = false
@@ -287,7 +288,7 @@ function releaseHostage()
 		print("triggering cmg3_animations:sync")
 		TriggerServerEvent('cmg3_animations:sync', closestPlayer, lib,lib2, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget,attachFlag)
 	else
-		print("[CMG Anim] No player nearby")
+		print("[CMG Anim] Yakında oyuncu yok")
 	end
 end 
 
@@ -312,7 +313,7 @@ function killHostage()
 		print("triggering cmg3_animations:sync")
 		TriggerServerEvent('cmg3_animations:sync', closestPlayer, lib,lib2, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget,attachFlag)
 	else
-		print("[CMG Anim] No player nearby")
+		print("[CMG Anim] Yakında oyuncu yok")
 	end	
 end 
 
