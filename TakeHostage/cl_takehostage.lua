@@ -98,11 +98,13 @@ AddEventHandler('cmg3_animations:syncTarget', function(target, animationLib, ani
 	
 	if animation2 == "victim_fail" then 
 		SetEntityHealth(GetPlayerPed(-1),0)
+		DetachEntity(GetPlayerPed(-1), true, false)
 		TaskPlayAnim(playerPed, animationLib, animation2, 8.0, -8.0, length, controlFlag, 0, false, false, false)
 		beingHeldHostage = false 
 		holdingHostageInProgress = false 
 	elseif animation2 == "shoved_back" then 
 		holdingHostageInProgress = false 
+		DetachEntity(GetPlayerPed(-1), true, false)
 		TaskPlayAnim(playerPed, animationLib, animation2, 8.0, -8.0, length, controlFlag, 0, false, false, false)
 		beingHeldHostage = false 
 	else
