@@ -6,9 +6,23 @@ local hostageAllowedWeapons = {
 	"WEAPON_PISTOL",
 	"WEAPON_COMBATPISTOL",
 	--etc add guns you want
+	"WEAPON_M1911CMG",
+	"WEAPON_BERETTACMG",
+	"WEAPON_PYTHONCMG",
+	"WEAPON_TEC9CMG",
+	"WEAPON_M1935CMG",
+	"WEAPON_MAKAROVCMG",
+	"WEAPON_PROKOCMG",
+	"WEAPON_HK45CMG",
+	"WEAPON_GOLDENDEAGLECMG",
+	"WEAPON_FNXCMG",
+	"WEAPON_GLOCKCMG",
 }
 
 local holdingHostageInProgress = false
+local takeHostageAnimNamePlaying = ""
+local takeHostageAnimDictPlaying = ""
+local takeHostageControlFlagPlaying = 0
 
 RegisterCommand("takehostage",function()
 	takeHostage()
@@ -56,14 +70,12 @@ function takeHostage()
 		attachFlag = true 
 		local closestPlayer = GetClosestPlayer(2)
 		target = GetPlayerServerId(closestPlayer)
-		if closestPlayer ~= nil then
+		if closestPlayer ~= 0 then
 			SetCurrentPedWeapon(GetPlayerPed(-1), foundWeapon, true)
 			holdingHostageInProgress = true
 			holdingHostage = true 
-			--print("triggering cmg3_animations:sync")
 			TriggerServerEvent('cmg3_animations:sync', closestPlayer, lib,lib2, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget,attachFlag)
 		else
-			--print("[CMG Anim] No player nearby")
 			drawNativeNotification("No one nearby to take as hostage!")
 		end 
 	end
@@ -80,7 +92,6 @@ AddEventHandler('cmg3_animations:syncTarget', function(target, animationLib, ani
 		holdingHostageInProgress = true
 	end
 	beingHeldHostage = true 
-	--print("triggered cmg3_animations:syncTarget")
 	RequestAnimDict(animationLib)
 
 	while not HasAnimDictLoaded(animationLib) do
@@ -88,10 +99,8 @@ AddEventHandler('cmg3_animations:syncTarget', function(target, animationLib, ani
 	end
 	if spin == nil then spin = 180.0 end
 	if attach then 
-		--print("attaching entity")
 		AttachEntityToEntity(GetPlayerPed(-1), targetPed, 0, distans2, distans, height, 0.5, 0.5, spin, false, false, false, false, 2, false)
 	else 
-		--print("not attaching entity")
 	end
 	
 	if controlFlag == nil then controlFlag = 0 end
@@ -110,12 +119,14 @@ AddEventHandler('cmg3_animations:syncTarget', function(target, animationLib, ani
 	else
 		TaskPlayAnim(playerPed, animationLib, animation2, 8.0, -8.0, length, controlFlag, 0, false, false, false)	
 	end
+	takeHostageAnimNamePlaying = animation2
+	takeHostageAnimDictPlaying = animationLib
+	takeHostageControlFlagPlaying = controlFlag
 end)
 
 RegisterNetEvent('cmg3_animations:syncMe')
 AddEventHandler('cmg3_animations:syncMe', function(animationLib, animation,length,controlFlag,animFlag)
 	local playerPed = GetPlayerPed(-1)
-	--print("triggered cmg3_animations:syncMe")
 	ClearPedSecondaryTask(GetPlayerPed(-1))
 	RequestAnimDict(animationLib)
 	while not HasAnimDictLoaded(animationLib) do
@@ -123,6 +134,9 @@ AddEventHandler('cmg3_animations:syncMe', function(animationLib, animation,lengt
 	end
 	if controlFlag == nil then controlFlag = 0 end
 	TaskPlayAnim(playerPed, animationLib, animation, 8.0, -8.0, length, controlFlag, 0, false, false, false)
+	takeHostageAnimNamePlaying = animation
+	takeHostageAnimDictPlaying = animationLib
+	takeHostageControlFlagPlaying = controlFlag
 	if animation == "perp_fail" then 
 		SetPedShootsAtCoord(GetPlayerPed(-1), 0.0, 0.0, 0.0, 0)
 		holdingHostageInProgress = false 
@@ -141,6 +155,18 @@ AddEventHandler('cmg3_animations:cl_stop', function()
 	holdingHostage = false 
 	ClearPedSecondaryTask(GetPlayerPed(-1))
 	DetachEntity(GetPlayerPed(-1), true, false)
+end)
+
+Citizen.CreateThread(function()
+	while true do
+		if holdingHostage or beingHeldHostage then 
+			while not IsEntityPlayingAnim(GetPlayerPed(-1), takeHostageAnimDictPlaying, takeHostageAnimNamePlaying, 3) do
+				TaskPlayAnim(GetPlayerPed(-1), takeHostageAnimDictPlaying, takeHostageAnimNamePlaying, 8.0, -8.0, 100000, takeHostageControlFlagPlaying, 0, false, false, false)
+				Citizen.Wait(0)
+			end
+		end
+		Wait(0)
+	end
 end)
 
 function GetPlayers()
@@ -171,7 +197,7 @@ function GetClosestPlayer(radius)
             end
         end
     end
-	print("closest player is dist: " .. tostring(closestDistance))
+	--print("closest player is dist: " .. tostring(closestDistance))
 	if closestDistance <= radius then
 		return closestPlayer
 	else
@@ -182,8 +208,7 @@ end
 Citizen.CreateThread(function()
 	while true do 
 		if holdingHostage then
-			if IsEntityDead(GetPlayerPed(-1)) then
-				--print("release this mofo")			
+			if IsEntityDead(GetPlayerPed(-1)) then	
 				holdingHostage = false
 				holdingHostageInProgress = false 
 				local closestPlayer = GetClosestPlayer(2)
@@ -199,8 +224,7 @@ Citizen.CreateThread(function()
 			DisablePlayerFiring(GetPlayerPed(-1),true)
 			local playerCoords = GetEntityCoords(GetPlayerPed(-1))
 			DrawText3D(playerCoords.x,playerCoords.y,playerCoords.z,"Press [G] to release, [H] to kill")
-			if IsDisabledControlJustPressed(0,47) then --release
-				--print("release this mofo")			
+			if IsDisabledControlJustPressed(0,47) then --release	
 				holdingHostage = false
 				holdingHostageInProgress = false 
 				local closestPlayer = GetClosestPlayer(2)
@@ -208,8 +232,7 @@ Citizen.CreateThread(function()
 				TriggerServerEvent("cmg3_animations:stop",target)
 				Wait(100)
 				releaseHostage()
-			elseif IsDisabledControlJustPressed(0,74) then --kill 
-				--print("kill this mofo")				
+			elseif IsDisabledControlJustPressed(0,74) then --kill 			
 				holdingHostage = false
 				holdingHostageInProgress = false 		
 				local closestPlayer = GetClosestPlayer(2)
@@ -285,11 +308,8 @@ function releaseHostage()
 	attachFlag = false
 	local closestPlayer = GetClosestPlayer(2)
 	target = GetPlayerServerId(closestPlayer)
-	if closestPlayer ~= nil then
-		print("triggering cmg3_animations:sync")
+	if closestPlayer ~= 0 then
 		TriggerServerEvent('cmg3_animations:sync', closestPlayer, lib,lib2, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget,attachFlag)
-	else
-		print("[CMG Anim] No player nearby")
 	end
 end 
 
@@ -310,11 +330,8 @@ function killHostage()
 	attachFlag = false
 	local closestPlayer = GetClosestPlayer(2)
 	target = GetPlayerServerId(closestPlayer)
-	if closestPlayer ~= nil then
-		print("triggering cmg3_animations:sync")
+	if target ~= 0 then
 		TriggerServerEvent('cmg3_animations:sync', closestPlayer, lib,lib2, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget,attachFlag)
-	else
-		print("[CMG Anim] No player nearby")
 	end	
 end 
 
