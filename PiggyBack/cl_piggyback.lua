@@ -1,4 +1,7 @@
 local piggyBackInProgress = false
+local piggyBackAnimNamePlaying = ""
+local piggyBackAnimDictPlaying = ""
+local piggyBackControlFlagPlaying = 0
 
 RegisterCommand("piggyback",function(source, args)
 	if not piggyBackInProgress then
@@ -17,11 +20,8 @@ RegisterCommand("piggyback",function(source, args)
 		animFlagTarget = 1
 		local closestPlayer = GetClosestPlayer(3)
 		target = GetPlayerServerId(closestPlayer)
-		if closestPlayer ~= nil then
-			print("triggering cmg2_animations:sync")
+		if closestPlayer ~= 0 then
 			TriggerServerEvent('cmg2_animations:sync', closestPlayer, lib, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget)
-		else
-			print("[CMG Anim] No player nearby")
 		end
 	else
 		piggyBackInProgress = false
@@ -29,7 +29,9 @@ RegisterCommand("piggyback",function(source, args)
 		DetachEntity(GetPlayerPed(-1), true, false)
 		local closestPlayer = GetClosestPlayer(3)
 		target = GetPlayerServerId(closestPlayer)
-		TriggerServerEvent("cmg2_animations:stop",target)
+		if target ~= 0 then 
+			TriggerServerEvent("cmg2_animations:stop",target)
+		end
 	end
 end,false)
 
@@ -38,7 +40,6 @@ AddEventHandler('cmg2_animations:syncTarget', function(target, animationLib, ani
 	local playerPed = GetPlayerPed(-1)
 	local targetPed = GetPlayerPed(GetPlayerFromServerId(target))
 	piggyBackInProgress = true
-	print("triggered cmg2_animations:syncTarget")
 	RequestAnimDict(animationLib)
 
 	while not HasAnimDictLoaded(animationLib) do
@@ -48,12 +49,14 @@ AddEventHandler('cmg2_animations:syncTarget', function(target, animationLib, ani
 	AttachEntityToEntity(GetPlayerPed(-1), targetPed, 0, distans2, distans, height, 0.5, 0.5, spin, false, false, false, false, 2, false)
 	if controlFlag == nil then controlFlag = 0 end
 	TaskPlayAnim(playerPed, animationLib, animation2, 8.0, -8.0, length, controlFlag, 0, false, false, false)
+	piggyBackAnimNamePlaying = animation2
+	piggyBackAnimDictPlaying = animationLib
+	piggyBackControlFlagPlaying = controlFlag
 end)
 
 RegisterNetEvent('cmg2_animations:syncMe')
 AddEventHandler('cmg2_animations:syncMe', function(animationLib, animation,length,controlFlag,animFlag)
 	local playerPed = GetPlayerPed(-1)
-	print("triggered cmg2_animations:syncMe")
 	RequestAnimDict(animationLib)
 
 	while not HasAnimDictLoaded(animationLib) do
@@ -62,8 +65,9 @@ AddEventHandler('cmg2_animations:syncMe', function(animationLib, animation,lengt
 	Wait(500)
 	if controlFlag == nil then controlFlag = 0 end
 	TaskPlayAnim(playerPed, animationLib, animation, 8.0, -8.0, length, controlFlag, 0, false, false, false)
-
-	Citizen.Wait(length)
+	piggyBackAnimNamePlaying = animation
+	piggyBackAnimDictPlaying = animationLib
+	piggyBackControlFlagPlaying = controlFlag
 end)
 
 RegisterNetEvent('cmg2_animations:cl_stop')
@@ -72,6 +76,19 @@ AddEventHandler('cmg2_animations:cl_stop', function()
 	ClearPedSecondaryTask(GetPlayerPed(-1))
 	DetachEntity(GetPlayerPed(-1), true, false)
 end)
+
+Citizen.CreateThread(function()
+	while true do
+		if piggyBackInProgress then 
+			while not IsEntityPlayingAnim(GetPlayerPed(-1), piggyBackAnimDictPlaying, piggyBackAnimNamePlaying, 3) do
+				TaskPlayAnim(GetPlayerPed(-1), piggyBackAnimDictPlaying, piggyBackAnimNamePlaying, 8.0, -8.0, 100000, piggyBackControlFlagPlaying, 0, false, false, false)
+				Citizen.Wait(0)
+			end
+		end
+		Wait(0)
+	end
+end)
+
 
 function GetPlayers()
     local players = {}
@@ -103,7 +120,7 @@ function GetClosestPlayer(radius)
             end
         end
     end
-	print("closest player is dist: " .. tostring(closestDistance))
+	--print("closest player is dist: " .. tostring(closestDistance))
 	if closestDistance <= radius then
 		return closestPlayer
 	else
