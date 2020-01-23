@@ -5,7 +5,6 @@ local carryControlFlagPlaying = 0
 
 RegisterCommand("carry",function(source, args)
 	if not carryingBackInProgress then
-		carryingBackInProgress = true
 		local player = PlayerPedId()	
 		lib = 'missfinale_c2mcs_1'
 		anim1 = 'fin_c2_mcs_1_camman'
@@ -21,7 +20,8 @@ RegisterCommand("carry",function(source, args)
 		animFlagTarget = 1
 		local closestPlayer = GetClosestPlayer(3)
 		target = GetPlayerServerId(closestPlayer)
-		if closestPlayer ~= 0 then
+		if closestPlayer ~= -1 then
+			carryingBackInProgress = true
 			TriggerServerEvent('CarryPeople:sync', closestPlayer, lib,lib2, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget)
 		end
 	else

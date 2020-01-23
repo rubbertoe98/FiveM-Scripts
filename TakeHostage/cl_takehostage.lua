@@ -59,7 +59,7 @@ function takeHostage()
 		attachFlag = true 
 		local closestPlayer = GetClosestPlayer(2)
 		target = GetPlayerServerId(closestPlayer)
-		if closestPlayer ~= 0 then
+		if closestPlayer ~= -1 then
 			SetCurrentPedWeapon(GetPlayerPed(-1), foundWeapon, true)
 			holdingHostageInProgress = true
 			holdingHostage = true 
