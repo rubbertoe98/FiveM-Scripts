@@ -23,6 +23,8 @@ RegisterCommand("carry",function(source, args)
 		if closestPlayer ~= -1 then
 			carryingBackInProgress = true
 			TriggerServerEvent('CarryPeople:sync', closestPlayer, lib,lib2, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget)
+		else
+			drawNativeNotification("No one nearby to carry!")
 		end
 	else
 		carryingBackInProgress = false

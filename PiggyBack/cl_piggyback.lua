@@ -22,6 +22,8 @@ RegisterCommand("piggyback",function(source, args)
 		if closestPlayer ~= -1 then
 			piggyBackInProgress = true
 			TriggerServerEvent('cmg2_animations:sync', closestPlayer, lib, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget)
+		else 
+			drawNativeNotification("No one nearby to piggyback!")
 		end
 	else
 		piggyBackInProgress = false
