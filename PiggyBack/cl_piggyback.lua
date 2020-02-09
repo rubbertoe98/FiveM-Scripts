@@ -19,7 +19,7 @@ RegisterCommand("piggyback",function(source, args)
 		animFlagTarget = 1
 		local closestPlayer = GetClosestPlayer(3)
 		target = GetPlayerServerId(closestPlayer)
-		if closestPlayer ~= -1 then
+		if closestPlayer ~= -1 and closestPlayer ~= nil then
 			piggyBackInProgress = true
 			TriggerServerEvent('cmg2_animations:sync', closestPlayer, lib, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget)
 		else 
