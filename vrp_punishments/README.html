@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>vrp_punishmentslog created by Robbster</title>
+        <style>
+</style>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="vrp_punishmentslog-created-by-robbster">vrp_punishmentslog created by Robbster</h1>
+<h2 id="installation">Installation:</h2>
+<h6 id="1-dependancies-ghmattimysql">1) Dependancies: GHMattiMySQL</h6>
+<p>Ensure you have GHMattiMySQL installed and correctly configured to your database
+<code>https://github.com/GHMatti/FiveM-MySQL</code></p>
+<h6 id="2-create-your-new-database-table-by-executing-the-following-sql-in-your-database">2) Create your new database table by executing the following SQL in your database</h6>
+<pre><code class="language-SQL"><div><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> <span class="hljs-string">`cmg_warnings`</span> (
+  <span class="hljs-string">`warning_id`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span> AUTO_INCREMENT,
+  <span class="hljs-string">`user_id`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">DEFAULT</span> <span class="hljs-literal">NULL</span>,
+  <span class="hljs-string">`warning_type`</span> <span class="hljs-built_in">varchar</span>(<span class="hljs-number">25</span>) <span class="hljs-keyword">DEFAULT</span> <span class="hljs-literal">NULL</span>,
+  <span class="hljs-string">`duration`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">DEFAULT</span> <span class="hljs-literal">NULL</span>,
+  <span class="hljs-string">`admin`</span> <span class="hljs-built_in">varchar</span>(<span class="hljs-number">100</span>) <span class="hljs-keyword">DEFAULT</span> <span class="hljs-literal">NULL</span>,
+  <span class="hljs-string">`warning_date`</span> <span class="hljs-built_in">date</span> <span class="hljs-keyword">DEFAULT</span> <span class="hljs-literal">NULL</span>,
+  <span class="hljs-string">`reason`</span> <span class="hljs-built_in">varchar</span>(<span class="hljs-number">2000</span>) <span class="hljs-keyword">DEFAULT</span> <span class="hljs-literal">NULL</span>,
+  PRIMARY <span class="hljs-keyword">KEY</span>(warning_id )
+) 
+</div></code></pre>
+<h6 id="3-go-to-vrpmodulesadminlua">3) Go to vrp/modules/admin.lua</h6>
+<p>and find the ch_kick function (CTRL-F &quot;ch_kick&quot;)
+Place this line just before the line starting with &quot;vRP.kick&quot;.</p>
+<pre><code class="language-lua"><div>saveKickLog(id,GetPlayerName(player),reason)
+</div></code></pre>
+<h6 id="4-replace-the-ch_ban-function-with-the-following-code">4) Replace the ch_ban function with the following code</h6>
+<pre><code class="language-lua"><div><span class="hljs-keyword">local</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">ch_ban</span><span class="hljs-params">(player,choice)</span></span>
+  <span class="hljs-keyword">local</span> user_id = vRP.getUserId(player)
+  <span class="hljs-keyword">if</span> user_id ~= <span class="hljs-literal">nil</span> <span class="hljs-keyword">and</span> vRP.hasPermission(user_id,<span class="hljs-string">"player.ban"</span>) <span class="hljs-keyword">then</span>
+    vRP.prompt(player,<span class="hljs-string">"User id to ban: "</span>,<span class="hljs-string">""</span>,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(player,id)</span></span>
+      id = parseInt(id)
+      vRP.prompt(player,<span class="hljs-string">"Reason: "</span>,<span class="hljs-string">""</span>,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(player,reason)</span></span>
+        <span class="hljs-keyword">local</span> source = vRP.getUserSource(id)
+	  vRP.prompt(player,<span class="hljs-string">"Hours: "</span>,<span class="hljs-string">""</span>,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(player,duration)</span></span>
+	    <span class="hljs-keyword">if</span> <span class="hljs-built_in">tonumber</span>(duration) <span class="hljs-keyword">then</span>
+	      vRPclient.notify(player,{<span class="hljs-string">"banned user "</span>..id})
+	      saveBanLog(id,GetPlayerName(player),reason,duration)
+	      vRP.ban(source,reason)
+    	    <span class="hljs-keyword">else</span>
+		vRPclient.notify(player,{<span class="hljs-string">"~r~Invalid ban time!"</span>})
+            <span class="hljs-keyword">end</span>
+	<span class="hljs-keyword">end</span>)
+      <span class="hljs-keyword">end</span>)
+    <span class="hljs-keyword">end</span>)
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+</div></code></pre>
+<h6 id="5-place-sv_warningsystemlua-in-vrpmodules-and-cl_warningsystemlua-in-vrpclient">5) Place sv_warningsystem.lua in vrp/modules/ and cl_warningsystem.lua in vrp/client/</h6>
+<h6 id="6-update-your-vrp__resourcelua-by-putting-adding-the-file-names-cl_warningsystemlua--sv_warningsystemlua-in-the-appropriate-section">6) Update your vrp/__resource.lua by putting adding the file names cl_warningsystem.lua &amp; sv_warningsystem.lua in the appropriate section</h6>
+<h2 id="how-to-use">How to use:</h2>
+<ul>
+<li>F10 to open up the warning sytem</li>
+<li>/showwarnings [user_id] to show someone's punishment log (i.e /showwarnings 1)</li>
+<li>/warn to give a warning</li>
+<li>Kicks &amp; Bans are automatically added to someones punishment log when you ban/kick them through your phone</li>
+</ul>
+<p>Feel free to make improvements with PRs</p>
+
+    </body>
+    </html>

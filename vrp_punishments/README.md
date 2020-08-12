@@ -10,16 +10,16 @@ Ensure you have GHMattiMySQL installed and correctly configured to your database
 ###### 2) Create your new database table by executing the following SQL in your database
 
 ```SQL
-CREATE TABLE cmg_warnings (
-	warning_id INT,
-	user_id INT,
-	warning_type VARCHAR(25),
-	duration INT,
-	admin VARCHAR(100),
-	warning_date DATE,
-	reason VARCHAR(2000),
-	PRIMARY KEY (warning_id)
-)
+CREATE TABLE `cmg_warnings` (
+  `warning_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `warning_type` varchar(25) DEFAULT NULL,
+  `duration` int(11) DEFAULT NULL,
+  `admin` varchar(100) DEFAULT NULL,
+  `warning_date` date DEFAULT NULL,
+  `reason` varchar(2000) DEFAULT NULL,
+  PRIMARY KEY(warning_id )
+) 
 ```
 
 ###### 3) Go to vrp/modules/admin.lua 
