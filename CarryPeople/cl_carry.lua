@@ -1,137 +1,120 @@
-local carryingBackInProgress = false
-local carryAnimNamePlaying = ""
-local carryAnimDictPlaying = ""
-local carryControlFlagPlaying = 0
 
-RegisterCommand("carry",function(source, args)
-	if not carryingBackInProgress then
-		local player = PlayerPedId()	
-		lib = 'missfinale_c2mcs_1'
-		anim1 = 'fin_c2_mcs_1_camman'
-		lib2 = 'nm'
-		anim2 = 'firemans_carry'
-		distans = 0.15
-		distans2 = 0.27
-		height = 0.63
-		spin = 0.0		
-		length = 100000
-		controlFlagMe = 49
-		controlFlagTarget = 33
-		animFlagTarget = 1
-		local closestPlayer = GetClosestPlayer(3)
-		target = GetPlayerServerId(closestPlayer)
-		if closestPlayer ~= -1 and closestPlayer ~= nil then
-			carryingBackInProgress = true
-			TriggerServerEvent('CarryPeople:sync', closestPlayer, lib,lib2, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget)
-		else
-			drawNativeNotification("No one nearby to carry!")
-		end
-	else
-		carryingBackInProgress = false
-		ClearPedSecondaryTask(GetPlayerPed(-1))
-		DetachEntity(GetPlayerPed(-1), true, false)
-		local closestPlayer = GetClosestPlayer(3)
-		target = GetPlayerServerId(closestPlayer)
-		if target ~= 0 then 
-			TriggerServerEvent("CarryPeople:stop",target)
-		end
-	end
-end,false)
+local carry = {
+	InProgress = false,
+	targetSrc = -1,
+	type = "",
+	personCarrying = {
+		animDict = "missfinale_c2mcs_1",
+		anim = "fin_c2_mcs_1_camman",
+		flag = 49,
+	},
+	personCarried = {
+		animDict = "nm",
+		anim = "firemans_carry",
+		attachX = 0.27,
+		attachY = 0.15,
+		attachZ = 0.63,
+		flag = 33,
+	}
+}
 
-RegisterNetEvent('CarryPeople:syncTarget')
-AddEventHandler('CarryPeople:syncTarget', function(target, animationLib, animation2, distans, distans2, height, length,spin,controlFlag)
-	local playerPed = GetPlayerPed(-1)
-	local targetPed = GetPlayerPed(GetPlayerFromServerId(target))
-	carryingBackInProgress = true
-	RequestAnimDict(animationLib)
-
-	while not HasAnimDictLoaded(animationLib) do
-		Citizen.Wait(10)
-	end
-	if spin == nil then spin = 180.0 end
-	AttachEntityToEntity(GetPlayerPed(-1), targetPed, 0, distans2, distans, height, 0.5, 0.5, spin, false, false, false, false, 2, false)
-	if controlFlag == nil then controlFlag = 0 end
-	TaskPlayAnim(playerPed, animationLib, animation2, 8.0, -8.0, length, controlFlag, 0, false, false, false)
-	carryAnimNamePlaying = animation2
-	carryAnimDictPlaying = animationLib
-	carryControlFlagPlaying = controlFlag
-end)
-
-RegisterNetEvent('CarryPeople:syncMe')
-AddEventHandler('CarryPeople:syncMe', function(animationLib, animation,length,controlFlag,animFlag)
-	local playerPed = GetPlayerPed(-1)
-	RequestAnimDict(animationLib)
-
-	while not HasAnimDictLoaded(animationLib) do
-		Citizen.Wait(10)
-	end
-	Wait(500)
-	if controlFlag == nil then controlFlag = 0 end
-	TaskPlayAnim(playerPed, animationLib, animation, 8.0, -8.0, length, controlFlag, 0, false, false, false)
-	carryAnimNamePlaying = animation
-	carryAnimDictPlaying = animationLib
-	carryControlFlagPlaying = controlFlag
-end)
-
-RegisterNetEvent('CarryPeople:cl_stop')
-AddEventHandler('CarryPeople:cl_stop', function()
-	carryingBackInProgress = false
-	ClearPedSecondaryTask(GetPlayerPed(-1))
-	DetachEntity(GetPlayerPed(-1), true, false)
-end)
-
-Citizen.CreateThread(function()
-	while true do
-		if carryingBackInProgress then 
-			while not IsEntityPlayingAnim(GetPlayerPed(-1), carryAnimDictPlaying, carryAnimNamePlaying, 3) do
-				TaskPlayAnim(GetPlayerPed(-1), carryAnimDictPlaying, carryAnimNamePlaying, 8.0, -8.0, 100000, carryControlFlagPlaying, 0, false, false, false)
-				Citizen.Wait(0)
-			end
-		end
-		Wait(0)
-	end
-end)
-
-function GetPlayers()
-    local players = {}
-
-    for i = 0, 255 do
-        if NetworkIsPlayerActive(i) then
-            table.insert(players, i)
-        end
-    end
-
-    return players
+local function drawNativeNotification(text)
+    SetTextComponentFormat("STRING")
+    AddTextComponentString(text)
+    DisplayHelpTextFromStringLabel(0, 0, 1, -1)
 end
 
-function GetClosestPlayer(radius)
-    local players = GetPlayers()
+local function GetClosestPlayer(radius)
+    local players = GetActivePlayers()
     local closestDistance = -1
     local closestPlayer = -1
-    local ply = GetPlayerPed(-1)
-    local plyCoords = GetEntityCoords(ply, 0)
+    local playerPed = PlayerPedId()
+    local playerCoords = GetEntityCoords(playerPed)
 
-    for index,value in ipairs(players) do
-        local target = GetPlayerPed(value)
-        if(target ~= ply) then
-            local targetCoords = GetEntityCoords(GetPlayerPed(value), 0)
-            local distance = GetDistanceBetweenCoords(targetCoords['x'], targetCoords['y'], targetCoords['z'], plyCoords['x'], plyCoords['y'], plyCoords['z'], true)
-            if(closestDistance == -1 or closestDistance > distance) then
-                closestPlayer = value
+    for _,playerId in ipairs(players) do
+        local targetPed = GetPlayerPed(playerId)
+        if targetPed ~= playerPed then
+            local targetCoords = GetEntityCoords(targetPed)
+            local distance = #(targetCoords-playerCoords)
+            if closestDistance == -1 or closestDistance > distance then
+                closestPlayer = playerId
                 closestDistance = distance
             end
         end
     end
-	--print("closest player is dist: " .. tostring(closestDistance))
-	if closestDistance <= radius then
+	if closestDistance ~= -1 and closestDistance <= radius then
 		return closestPlayer
 	else
 		return nil
 	end
 end
 
-function drawNativeNotification(text)
-    SetTextComponentFormat('STRING')
-    AddTextComponentString(text)
-    DisplayHelpTextFromStringLabel(0, 0, 1, -1)
+local function ensureAnimDict(animDict)
+    if not HasAnimDictLoaded(animDict) then
+        RequestAnimDict(animDict)
+        while not HasAnimDictLoaded(animDict) do
+            Wait(0)
+        end        
+    end
+    return animDict
 end
+
+RegisterCommand("carry",function(source, args)
+	if not carry.InProgress then
+		local closestPlayer = GetClosestPlayer(3)
+		if closestPlayer then
+			local targetSrc = GetPlayerServerId(closestPlayer)
+			if targetSrc ~= -1 then
+				carry.InProgress = true
+				carry.targetSrc = targetSrc
+				TriggerServerEvent("CarryPeople:sync",targetSrc)
+				ensureAnimDict(carry.personCarrying.animDict)
+				carry.type = "carrying"
+			else
+				drawNativeNotification("~r~No one nearby to carry!")
+			end
+		else
+			drawNativeNotification("~r~No one nearby to carry!")
+		end
+	else
+		carry.InProgress = false
+		ClearPedSecondaryTask(PlayerPedId())
+		DetachEntity(PlayerPedId(), true, false)
+		TriggerServerEvent("CarryPeople:stop",carry.targetSrc)
+		carry.targetSrc = 0
+	end
+end,false)
+
+RegisterNetEvent("CarryPeople:syncTarget")
+AddEventHandler("CarryPeople:syncTarget", function(targetSrc)
+	local playerPed = PlayerPedId()
+	local targetPed = GetPlayerPed(GetPlayerFromServerId(targetSrc))
+	carry.InProgress = true
+	ensureAnimDict(carry.personCarried.animDict)
+	AttachEntityToEntity(PlayerPedId(), targetPed, 0, carry.personCarried.attachX, carry.personCarried.attachY, carry.personCarried.attachZ, 0.5, 0.5, 180, false, false, false, false, 2, false)
+	carry.type = "beingcarried"
+end)
+
+RegisterNetEvent("CarryPeople:cl_stop")
+AddEventHandler("CarryPeople:cl_stop", function()
+	carry.InProgress = false
+	ClearPedSecondaryTask(PlayerPedId())
+	DetachEntity(PlayerPedId(), true, false)
+end)
+
+Citizen.CreateThread(function()
+	while true do
+		if carry.InProgress then
+			if carry.type == "beingcarried" then
+				if not IsEntityPlayingAnim(PlayerPedId(), carry.personCarried.animDict, carry.personCarried.anim, 3) then
+					TaskPlayAnim(PlayerPedId(), carry.personCarried.animDict, carry.personCarried.anim, 8.0, -8.0, 100000, carry.personCarried.flag, 0, false, false, false)
+				end
+			elseif carry.type == "carrying" then
+				if not IsEntityPlayingAnim(PlayerPedId(), carry.personCarrying.animDict, carry.personCarrying.anim, 3) then
+					TaskPlayAnim(PlayerPedId(), carry.personCarrying.animDict, carry.personCarrying.anim, 8.0, -8.0, 100000, carry.personCarrying.flag, 0, false, false, false)
+				end
+			end
+		end
+		Wait(0)
+	end
+end)
