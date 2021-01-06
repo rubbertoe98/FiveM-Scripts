@@ -1,12 +1,44 @@
-RegisterServerEvent('cmg2_animations:sync')
-AddEventHandler('cmg2_animations:sync', function(target, animationLib, animation, animation2, distans, distans2, height,targetSrc,length,spin,controlFlagSrc,controlFlagTarget,animFlagTarget)
-	print("got to srv cmg2_animations:sync")
-	TriggerClientEvent('cmg2_animations:syncTarget', targetSrc, source, animationLib, animation2, distans, distans2, height, length,spin,controlFlagTarget,animFlagTarget)
-	print("triggering to target: " .. tostring(targetSrc))
-	TriggerClientEvent('cmg2_animations:syncMe', source, animationLib, animation,length,controlFlagSrc,animFlagTarget)
+local piggybacking = {}
+--piggybacking[source] = targetSource, source is piggybacking targetSource
+local beingPiggybacked = {}
+--beingPiggybacked[targetSource] = source, targetSource is beingPiggybacked by source
+
+RegisterServerEvent("Piggyback:sync")
+AddEventHandler("Piggyback:sync", function(targetSrc)
+	local source = source
+
+	TriggerClientEvent("Piggyback:syncTarget", targetSrc, source)
+	piggybacking[source] = targetSrc
+	beingPiggybacked[targetSrc] = source
 end)
 
-RegisterServerEvent('cmg2_animations:stop')
-AddEventHandler('cmg2_animations:stop', function(targetSrc)
-	TriggerClientEvent('cmg2_animations:cl_stop', targetSrc)
+RegisterServerEvent("Piggyback:stop")
+AddEventHandler("Piggyback:stop", function(targetSrc)
+	local source = source
+
+	if piggybacking[source] then
+		TriggerClientEvent("Piggyback:cl_stop", targetSrc)
+		piggybacking[source] = nil
+		beingPiggybacked[targetSrc] = nil
+	elseif beingPiggybacked[source] then
+		TriggerClientEvent("Piggyback:cl_stop", beingPiggybacked[source])
+		beingPiggybacked[source] = nil
+		piggybacking[beingPiggybacked[source]] = nil
+	end
+end)
+
+AddEventHandler('playerDropped', function(reason)
+	local source = source
+	
+	if piggybacking[source] then
+		TriggerClientEvent("Piggyback:cl_stop", piggybacking[source])
+		beingPiggybacked[piggybacking[source]] = nil
+		piggybacking[source] = nil
+	end
+
+	if beingPiggybacked[source] then
+		TriggerClientEvent("Piggyback:cl_stop", beingPiggybacked[source])
+		piggybacking[beingPiggybacked[source]] = nil
+		beingPiggybacked[source] = nil
+	end
 end)
