@@ -2,33 +2,95 @@
 --TakeHostage by Robbster, do not redistrbute without permission--
 ------------------------------------------------------------------
 
-local hostageAllowedWeapons = {
-	"WEAPON_PISTOL",
-	"WEAPON_COMBATPISTOL",
-	--etc add guns you want
+local takeHostage = {
+	allowedWeapons = {
+		`WEAPON_PISTOL`,
+		`WEAPON_COMBATPISTOL`,
+		--etc add guns you want
+	},
+	InProgress = false,
+	type = "",
+	targetSrc = -1,
+	agressor = {
+		animDict = "anim@gangops@hostage@",
+		anim = "perp_idle",
+		flag = 49,
+	},
+	hostage = {
+		animDict = "anim@gangops@hostage@",
+		anim = "victim_idle",
+		attachX = -0.24,
+		attachY = 0.11,
+		attachZ = 0.0,
+		flag = 49,
+	}
 }
 
-local holdingHostageInProgress = false
-local takeHostageAnimNamePlaying = ""
-local takeHostageAnimDictPlaying = ""
-local takeHostageControlFlagPlaying = 0
+local function drawNativeNotification(text)
+    SetTextComponentFormat("STRING")
+    AddTextComponentString(text)
+    DisplayHelpTextFromStringLabel(0, 0, 1, -1)
+end
+
+local function GetClosestPlayer(radius)
+    local players = GetActivePlayers()
+    local closestDistance = -1
+    local closestPlayer = -1
+    local playerPed = PlayerPedId()
+    local playerCoords = GetEntityCoords(playerPed)
+
+    for _,playerId in ipairs(players) do
+        local targetPed = GetPlayerPed(playerId)
+        if targetPed ~= playerPed then
+            local targetCoords = GetEntityCoords(targetPed)
+            local distance = #(targetCoords-playerCoords)
+            if closestDistance == -1 or closestDistance > distance then
+                closestPlayer = playerId
+                closestDistance = distance
+            end
+        end
+    end
+	if closestDistance ~= -1 and closestDistance <= radius then
+		return closestPlayer
+	else
+		return nil
+	end
+end
+
+local function ensureAnimDict(animDict)
+    if not HasAnimDictLoaded(animDict) then
+        RequestAnimDict(animDict)
+        while not HasAnimDictLoaded(animDict) do
+            Wait(0)
+        end        
+    end
+    return animDict
+end
+
+local function drawNativeText(str)
+	SetTextEntry_2("STRING")
+	AddTextComponentString(str)
+	EndTextCommandPrint(1000, 1)
+end
 
 RegisterCommand("takehostage",function()
-	takeHostage()
+	callTakeHostage()
 end)
 
 RegisterCommand("th",function()
-	takeHostage()
+	callTakeHostage()
 end)
 
-function takeHostage()
-	ClearPedSecondaryTask(GetPlayerPed(-1))
-	DetachEntity(GetPlayerPed(-1), true, false)
-	for i=1, #hostageAllowedWeapons do
-		if HasPedGotWeapon(GetPlayerPed(-1), GetHashKey(hostageAllowedWeapons[i]), false) then
-			if GetAmmoInPedWeapon(GetPlayerPed(-1), GetHashKey(hostageAllowedWeapons[i])) > 0 then
+function callTakeHostage()
+	ClearPedSecondaryTask(PlayerPedId())
+	DetachEntity(PlayerPedId(), true, false)
+
+	local canTakeHostage = false
+	for i=1, #takeHostage.allowedWeapons do
+		if HasPedGotWeapon(PlayerPedId(), takeHostage.allowedWeapons[i], false) then
+			if GetAmmoInPedWeapon(PlayerPedId(), takeHostage.allowedWeapons[i]) > 0 then
 				canTakeHostage = true 
-				foundWeapon = GetHashKey(hostageAllowedWeapons[i])
+				foundWeapon = takeHostage.allowedWeapons[i]
 				break
 			end 					
 		end
@@ -38,199 +100,115 @@ function takeHostage()
 		drawNativeNotification("You need a pistol with ammo to take a hostage at gunpoint!")
 	end
 
-	if not holdingHostageInProgress and canTakeHostage then		
-		local player = PlayerPedId()	
-		--lib = 'misssagrab_inoffice'
-		--anim1 = 'hostage_loop'
-		--lib2 = 'misssagrab_inoffice'
-		--anim2 = 'hostage_loop_mrk'
-		lib = 'anim@gangops@hostage@'
-		anim1 = 'perp_idle'
-		lib2 = 'anim@gangops@hostage@'
-		anim2 = 'victim_idle'
-		distans = 0.11 --Higher = closer to camera
-		distans2 = -0.24 --higher = left
-		height = 0.0
-		spin = 0.0		
-		length = 100000
-		controlFlagMe = 49
-		controlFlagTarget = 49
-		animFlagTarget = 50
-		attachFlag = true 
-		local closestPlayer = GetClosestPlayer(2)
-		target = GetPlayerServerId(closestPlayer)
-		if closestPlayer ~= -1 and closestPlayer ~= nil then
-			SetCurrentPedWeapon(GetPlayerPed(-1), foundWeapon, true)
-			holdingHostageInProgress = true
-			holdingHostage = true 
-			TriggerServerEvent('cmg3_animations:sync', closestPlayer, lib,lib2, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget,attachFlag)
+	if not takeHostage.InProgress and canTakeHostage then			
+		local closestPlayer = GetClosestPlayer(3)
+		if closestPlayer then
+			local targetSrc = GetPlayerServerId(closestPlayer)
+			if targetSrc ~= -1 then
+				SetCurrentPedWeapon(PlayerPedId(), foundWeapon, true)
+				takeHostage.InProgress = true
+				takeHostage.targetSrc = targetSrc
+				TriggerServerEvent("TakeHostage:sync",targetSrc)
+				ensureAnimDict(takeHostage.agressor.animDict)
+				takeHostage.type = "agressor"
+			else
+				drawNativeNotification("~r~No one nearby to take as hostage!")
+			end
 		else
-			drawNativeNotification("No one nearby to take as hostage!")
-		end 
+			drawNativeNotification("~r~No one nearby to take as hostage!")
+		end
 	end
-	canTakeHostage = false 
 end 
 
-RegisterNetEvent('cmg3_animations:syncTarget')
-AddEventHandler('cmg3_animations:syncTarget', function(target, animationLib, animation2, distans, distans2, height, length,spin,controlFlag,animFlagTarget,attach)
-	local playerPed = GetPlayerPed(-1)
+RegisterNetEvent("TakeHostage:syncTarget")
+AddEventHandler("TakeHostage:syncTarget", function(target)
 	local targetPed = GetPlayerPed(GetPlayerFromServerId(target))
-	if holdingHostageInProgress then 
-		holdingHostageInProgress = false 
-	else 
-		holdingHostageInProgress = true
-	end
-	beingHeldHostage = true 
-	RequestAnimDict(animationLib)
-
-	while not HasAnimDictLoaded(animationLib) do
-		Citizen.Wait(10)
-	end
-	if spin == nil then spin = 180.0 end
-	if attach then 
-		AttachEntityToEntity(GetPlayerPed(-1), targetPed, 0, distans2, distans, height, 0.5, 0.5, spin, false, false, false, false, 2, false)
-	else 
-	end
-	
-	if controlFlag == nil then controlFlag = 0 end
-	
-	if animation2 == "victim_fail" then 
-		SetEntityHealth(GetPlayerPed(-1),0)
-		DetachEntity(GetPlayerPed(-1), true, false)
-		TaskPlayAnim(playerPed, animationLib, animation2, 8.0, -8.0, length, controlFlag, 0, false, false, false)
-		beingHeldHostage = false 
-		holdingHostageInProgress = false 
-	elseif animation2 == "shoved_back" then 
-		holdingHostageInProgress = false 
-		DetachEntity(GetPlayerPed(-1), true, false)
-		TaskPlayAnim(playerPed, animationLib, animation2, 8.0, -8.0, length, controlFlag, 0, false, false, false)
-		beingHeldHostage = false 
-	else
-		TaskPlayAnim(playerPed, animationLib, animation2, 8.0, -8.0, length, controlFlag, 0, false, false, false)	
-	end
-	takeHostageAnimNamePlaying = animation2
-	takeHostageAnimDictPlaying = animationLib
-	takeHostageControlFlagPlaying = controlFlag
+	takeHostage.InProgress = true
+	ensureAnimDict(takeHostage.hostage.animDict)
+	AttachEntityToEntity(PlayerPedId(), targetPed, 0, takeHostage.hostage.attachX, takeHostage.hostage.attachY, takeHostage.hostage.attachZ, 0.5, 0.5, 0.0, false, false, false, false, 2, false)
+	takeHostage.type = "hostage" 
 end)
 
-RegisterNetEvent('cmg3_animations:syncMe')
-AddEventHandler('cmg3_animations:syncMe', function(animationLib, animation,length,controlFlag,animFlag)
-	local playerPed = GetPlayerPed(-1)
-	ClearPedSecondaryTask(GetPlayerPed(-1))
-	RequestAnimDict(animationLib)
-	while not HasAnimDictLoaded(animationLib) do
-		Citizen.Wait(10)
-	end
-	if controlFlag == nil then controlFlag = 0 end
-	TaskPlayAnim(playerPed, animationLib, animation, 8.0, -8.0, length, controlFlag, 0, false, false, false)
-	takeHostageAnimNamePlaying = animation
-	takeHostageAnimDictPlaying = animationLib
-	takeHostageControlFlagPlaying = controlFlag
-	if animation == "perp_fail" then 
-		SetPedShootsAtCoord(GetPlayerPed(-1), 0.0, 0.0, 0.0, 0)
-		holdingHostageInProgress = false 
-	end
-	if animation == "shove_var_a" then 
-		Wait(900)
-		ClearPedSecondaryTask(GetPlayerPed(-1))
-		holdingHostageInProgress = false 
-	end
+RegisterNetEvent("TakeHostage:releaseHostage")
+AddEventHandler("TakeHostage:releaseHostage", function()
+	takeHostage.InProgress = false 
+	takeHostage.type = ""
+	DetachEntity(PlayerPedId(), true, false)
+	ensureAnimDict("reaction@shove")
+	TaskPlayAnim(PlayerPedId(), "reaction@shove", "shoved_back", 8.0, -8.0, -1, 0, 0, false, false, false)
+	Wait(250)
+	ClearPedSecondaryTask(PlayerPedId())
 end)
 
-RegisterNetEvent('cmg3_animations:cl_stop')
-AddEventHandler('cmg3_animations:cl_stop', function()
-	holdingHostageInProgress = false
-	beingHeldHostage = false 
-	holdingHostage = false 
-	ClearPedSecondaryTask(GetPlayerPed(-1))
-	DetachEntity(GetPlayerPed(-1), true, false)
+RegisterNetEvent("TakeHostage:killHostage")
+AddEventHandler("TakeHostage:killHostage", function()
+	takeHostage.InProgress = false 
+	takeHostage.type = ""
+	SetEntityHealth(PlayerPedId(),0)
+	DetachEntity(PlayerPedId(), true, false)
+	ensureAnimDict("anim@gangops@hostage@")
+	TaskPlayAnim(PlayerPedId(), "anim@gangops@hostage@", "victim_fail", 8.0, -8.0, -1, 168, 0, false, false, false)
+end)
+
+RegisterNetEvent("TakeHostage:cl_stop")
+AddEventHandler("TakeHostage:cl_stop", function()
+	takeHostage.InProgress = false
+	takeHostage.type = "" 
+	ClearPedSecondaryTask(PlayerPedId())
+	DetachEntity(PlayerPedId(), true, false)
 end)
 
 Citizen.CreateThread(function()
 	while true do
-		if holdingHostage or beingHeldHostage then 
-			while not IsEntityPlayingAnim(GetPlayerPed(-1), takeHostageAnimDictPlaying, takeHostageAnimNamePlaying, 3) do
-				TaskPlayAnim(GetPlayerPed(-1), takeHostageAnimDictPlaying, takeHostageAnimNamePlaying, 8.0, -8.0, 100000, takeHostageControlFlagPlaying, 0, false, false, false)
-				Citizen.Wait(0)
+		if takeHostage.type == "agressor" then
+			if not IsEntityPlayingAnim(PlayerPedId(), takeHostage.agressor.animDict, takeHostage.agressor.anim, 3) then
+				TaskPlayAnim(PlayerPedId(), takeHostage.agressor.animDict, takeHostage.agressor.anim, 8.0, -8.0, 100000, takeHostage.agressor.flag, 0, false, false, false)
+			end
+		elseif takeHostage.type == "hostage" then
+			if not IsEntityPlayingAnim(PlayerPedId(), takeHostage.hostage.animDict, takeHostage.hostage.anim, 3) then
+				TaskPlayAnim(PlayerPedId(), takeHostage.hostage.animDict, takeHostage.hostage.anim, 8.0, -8.0, 100000, takeHostage.hostage.flag, 0, false, false, false)
 			end
 		end
 		Wait(0)
 	end
 end)
 
-function GetPlayers()
-    local players = {}
-
-	for _, i in ipairs(GetActivePlayers()) do
-        table.insert(players, i)
-    end
-
-    return players
-end
-
-function GetClosestPlayer(radius)
-    local players = GetPlayers()
-    local closestDistance = -1
-    local closestPlayer = -1
-    local ply = GetPlayerPed(-1)
-    local plyCoords = GetEntityCoords(ply, 0)
-
-    for index,value in ipairs(players) do
-        local target = GetPlayerPed(value)
-        if(target ~= ply) then
-            local targetCoords = GetEntityCoords(GetPlayerPed(value), 0)
-            local distance = GetDistanceBetweenCoords(targetCoords['x'], targetCoords['y'], targetCoords['z'], plyCoords['x'], plyCoords['y'], plyCoords['z'], true)
-            if(closestDistance == -1 or closestDistance > distance) then
-                closestPlayer = value
-                closestDistance = distance
-            end
-        end
-    end
-	--print("closest player is dist: " .. tostring(closestDistance))
-	if closestDistance <= radius then
-		return closestPlayer
-	else
-		return nil
-	end
-end
-
 Citizen.CreateThread(function()
 	while true do 
-		if holdingHostage then
-			if IsEntityDead(GetPlayerPed(-1)) then	
-				holdingHostage = false
-				holdingHostageInProgress = false 
-				local closestPlayer = GetClosestPlayer(2)
-				target = GetPlayerServerId(closestPlayer)
-				TriggerServerEvent("cmg3_animations:stop",target)
-				Wait(100)
-				releaseHostage()
-			end 
+		if takeHostage.type == "agressor" then
 			DisableControlAction(0,24,true) -- disable attack
 			DisableControlAction(0,25,true) -- disable aim
 			DisableControlAction(0,47,true) -- disable weapon
 			DisableControlAction(0,58,true) -- disable weapon
-			DisablePlayerFiring(GetPlayerPed(-1),true)
-			local playerCoords = GetEntityCoords(GetPlayerPed(-1))
-			DrawText3D(playerCoords.x,playerCoords.y,playerCoords.z,"Press [G] to release, [H] to kill")
+			DisableControlAction(0,21,true) -- disable sprint
+			DisablePlayerFiring(PlayerPedId(),true)
+			drawNativeText("Press [G] to release, [H] to kill")
+
+			if IsEntityDead(PlayerPedId()) then	
+				takeHostage.type = ""
+				takeHostage.InProgress = false
+				ensureAnimDict("reaction@shove")
+				TaskPlayAnim(PlayerPedId(), "reaction@shove", "shove_var_a", 8.0, -8.0, -1, 168, 0, false, false, false)
+				TriggerServerEvent("TakeHostage:releaseHostage", takeHostage.targetSrc)
+			end 
+
 			if IsDisabledControlJustPressed(0,47) then --release	
-				holdingHostage = false
-				holdingHostageInProgress = false 
-				local closestPlayer = GetClosestPlayer(2)
-				target = GetPlayerServerId(closestPlayer)
-				TriggerServerEvent("cmg3_animations:stop",target)
-				Wait(100)
-				releaseHostage()
+				takeHostage.type = ""
+				takeHostage.InProgress = false 
+				ensureAnimDict("reaction@shove")
+				TaskPlayAnim(PlayerPedId(), "reaction@shove", "shove_var_a", 8.0, -8.0, -1, 168, 0, false, false, false)
+				TriggerServerEvent("TakeHostage:releaseHostage", takeHostage.targetSrc)
 			elseif IsDisabledControlJustPressed(0,74) then --kill 			
-				holdingHostage = false
-				holdingHostageInProgress = false 		
-				local closestPlayer = GetClosestPlayer(2)
-				target = GetPlayerServerId(closestPlayer)
-				TriggerServerEvent("cmg3_animations:stop",target)				
-				killHostage()
+				takeHostage.type = ""
+				takeHostage.InProgress = false 		
+				ensureAnimDict("anim@gangops@hostage@")
+				TaskPlayAnim(PlayerPedId(), "anim@gangops@hostage@", "perp_fail", 8.0, -8.0, -1, 168, 0, false, false, false)
+				TriggerServerEvent("TakeHostage:killHostage", takeHostage.targetSrc)
+				TriggerServerEvent("TakeHostage:stop",takeHostage.targetSrc)
+				Wait(100)
+				SetPedShootsAtCoord(PlayerPedId(), 0.0, 0.0, 0.0, 0)
 			end
-		end
-		if beingHeldHostage then 
+		elseif takeHostage.type == "hostage" then 
 			DisableControlAction(0,21,true) -- disable sprint
 			DisableControlAction(0,24,true) -- disable attack
 			DisableControlAction(0,25,true) -- disable aim
@@ -258,74 +236,3 @@ Citizen.CreateThread(function()
 		Wait(0)
 	end
 end)
-
-function DrawText3D(x,y,z, text)
-    local onScreen,_x,_y=World3dToScreen2d(x,y,z)
-    local px,py,pz=table.unpack(GetGameplayCamCoords())
-    
-    if onScreen then
-        SetTextScale(0.19, 0.19)
-        SetTextFont(0)
-        SetTextProportional(1)
-        -- SetTextScale(0.0, 0.55)
-        SetTextColour(255, 255, 255, 255)
-        SetTextDropshadow(0, 0, 0, 0, 55)
-        SetTextEdge(2, 0, 0, 0, 150)
-        SetTextDropShadow()
-        SetTextOutline()
-        SetTextEntry("STRING")
-        SetTextCentre(1)
-        AddTextComponentString(text)
-        DrawText(_x,_y)
-    end
-end
-
-function releaseHostage()
-	local player = PlayerPedId()	
-	lib = 'reaction@shove'
-	anim1 = 'shove_var_a'
-	lib2 = 'reaction@shove'
-	anim2 = 'shoved_back'
-	distans = 0.11 --Higher = closer to camera
-	distans2 = -0.24 --higher = left
-	height = 0.0
-	spin = 0.0		
-	length = 100000
-	controlFlagMe = 120
-	controlFlagTarget = 0
-	animFlagTarget = 1
-	attachFlag = false
-	local closestPlayer = GetClosestPlayer(2)
-	target = GetPlayerServerId(closestPlayer)
-	if closestPlayer ~= 0 then
-		TriggerServerEvent('cmg3_animations:sync', closestPlayer, lib,lib2, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget,attachFlag)
-	end
-end 
-
-function killHostage()
-	local player = PlayerPedId()	
-	lib = 'anim@gangops@hostage@'
-	anim1 = 'perp_fail'
-	lib2 = 'anim@gangops@hostage@'
-	anim2 = 'victim_fail'
-	distans = 0.11 --Higher = closer to camera
-	distans2 = -0.24 --higher = left
-	height = 0.0
-	spin = 0.0		
-	length = 0.2
-	controlFlagMe = 168
-	controlFlagTarget = 0
-	animFlagTarget = 1
-	attachFlag = false
-	local closestPlayer = GetClosestPlayer(2)
-	target = GetPlayerServerId(closestPlayer)
-	if target ~= 0 then
-		TriggerServerEvent('cmg3_animations:sync', closestPlayer, lib,lib2, anim1, anim2, distans, distans2, height,target,length,spin,controlFlagMe,controlFlagTarget,animFlagTarget,attachFlag)
-	end	
-end 
-
-function drawNativeNotification(text)
-    SetTextComponentFormat('STRING')
-    AddTextComponentString(text)
-    DisplayHelpTextFromStringLabel(0, 0, 1, -1)
-end

@@ -87,7 +87,6 @@ end,false)
 
 RegisterNetEvent("CarryPeople:syncTarget")
 AddEventHandler("CarryPeople:syncTarget", function(targetSrc)
-	local playerPed = PlayerPedId()
 	local targetPed = GetPlayerPed(GetPlayerFromServerId(targetSrc))
 	carry.InProgress = true
 	ensureAnimDict(carry.personCarried.animDict)

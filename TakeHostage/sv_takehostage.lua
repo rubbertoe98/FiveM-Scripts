@@ -1,14 +1,60 @@
+local takingHostage = {}
+--takingHostage[source] = targetSource, source is takingHostage targetSource
+local takenHostage = {}
+--takenHostage[targetSource] = source, targetSource is being takenHostage by source
 
-RegisterServerEvent('cmg3_animations:sync')
-AddEventHandler('cmg3_animations:sync', function(target, animationLib,animationLib2, animation, animation2, distans, distans2, height,targetSrc,length,spin,controlFlagSrc,controlFlagTarget,animFlagTarget,attachFlag)
-	print("got to srv cmg3_animations:sync")
-	print("got that fucking attach flag as: " .. tostring(attachFlag))
-	TriggerClientEvent('cmg3_animations:syncTarget', targetSrc, source, animationLib2, animation2, distans, distans2, height, length,spin,controlFlagTarget,animFlagTarget,attachFlag)
-	print("triggering to target: " .. tostring(targetSrc))
-	TriggerClientEvent('cmg3_animations:syncMe', source, animationLib, animation,length,controlFlagSrc,animFlagTarget)
+RegisterServerEvent("TakeHostage:sync")
+AddEventHandler("TakeHostage:sync", function(targetSrc)
+	local source = source
+
+	TriggerClientEvent("TakeHostage:syncTarget", targetSrc, source)
+	takingHostage[source] = targetSrc
+	takenHostage[targetSrc] = source
 end)
 
-RegisterServerEvent('cmg3_animations:stop')
-AddEventHandler('cmg3_animations:stop', function(targetSrc)
-	TriggerClientEvent('cmg3_animations:cl_stop', targetSrc)
+RegisterServerEvent("TakeHostage:releaseHostage")
+AddEventHandler("TakeHostage:releaseHostage", function(targetSrc)
+	local source = source
+	TriggerClientEvent("TakeHostage:releaseHostage", targetSrc, source)
+	takingHostage[source] = nil
+	takenHostage[targetSrc] = nil
+end)
+
+RegisterServerEvent("TakeHostage:killHostage")
+AddEventHandler("TakeHostage:killHostage", function(targetSrc)
+	local source = source
+	TriggerClientEvent("TakeHostage:killHostage", targetSrc, source)
+	takingHostage[source] = nil
+	takenHostage[targetSrc] = nil
+end)
+
+RegisterServerEvent("TakeHostage:stop")
+AddEventHandler("TakeHostage:stop", function(targetSrc)
+	local source = source
+
+	if takingHostage[source] then
+		TriggerClientEvent("TakeHostage:cl_stop", targetSrc)
+		takingHostage[source] = nil
+		takenHostage[targetSrc] = nil
+	elseif takenHostage[source] then
+		TriggerClientEvent("TakeHostage:cl_stop", targetSrc)
+		takenHostage[source] = nil
+		takingHostage[targetSrc] = nil
+	end
+end)
+
+AddEventHandler('playerDropped', function(reason)
+	local source = source
+	
+	if takingHostage[source] then
+		TriggerClientEvent("TakeHostage:cl_stop", takingHostage[source])
+		takenHostage[takingHostage[source]] = nil
+		takingHostage[source] = nil
+	end
+
+	if takenHostage[source] then
+		TriggerClientEvent("TakeHostage:cl_stop", takenHostage[source])
+		takingHostage[takenHostage[source]] = nil
+		takenHostage[source] = nil
+	end
 end)
