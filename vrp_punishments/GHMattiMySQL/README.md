@@ -22,6 +22,20 @@ CREATE TABLE cmg_warnings (
 )
 ```
 
+###### 2.1) If you have an error with the above query then try this
+```SQL
+CREATE TABLE cmg_warnings(
+  warning_id int(11) NOT NULL AUTO_INCREMENT,
+  user_id int(11) DEFAULT NULL,
+  warning_type varchar(25) DEFAULT NULL,
+  duration int(11) DEFAULT NULL,
+  admin varchar(100) DEFAULT NULL,
+  warning_date date DEFAULT NULL,
+  reason varchar(2000) DEFAULT NULL,
+  PRIMARY KEY(warning_id )
+) 
+```
+
 ###### 3) Go to vrp/modules/admin.lua 
 and find the ch_kick function (CTRL-F "ch_kick")
 Place this line just before the line starting with "vRP.kick".
