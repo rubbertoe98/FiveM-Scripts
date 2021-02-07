@@ -67,7 +67,7 @@ end)
 function saveKickLog(target_id,adminName,warningReason)
 	local warning = "Kick"
 	local warningDate = getCurrentDate()
-	local query("INSERT INTO cmg_warnings (`warning_id`, `user_id`, `warning_type`, `duration`, `admin`, `warning_date`, `reason`) VALUES (NULL, @user_id, @warning_type, 0, @admin, @warning_date,@reason);", {user_id = target_id,warning_type = warning, admin = adminName, warning_date = warningDate, reason = warningReason}, function() end)
+	query("INSERT INTO cmg_warnings (`warning_id`, `user_id`, `warning_type`, `duration`, `admin`, `warning_date`, `reason`) VALUES (NULL, @user_id, @warning_type, 0, @admin, @warning_date,@reason);", {user_id = target_id,warning_type = warning, admin = adminName, warning_date = warningDate, reason = warningReason}, function() end)
 end
 
 function saveBanLog(target_id,adminName,warningReason,warning_duration)
