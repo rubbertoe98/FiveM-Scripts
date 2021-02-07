@@ -1,4 +1,4 @@
-local cfg = module("cfg/cfg_warningsystem.lua")
+local cfg = module("cfg/cfg_warningsystem")
 
 
 RegisterCommand("showwarnings", function(source, args) 
