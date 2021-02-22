@@ -1,8 +1,6 @@
-# FiveM-Scripts
-Compilation of my publicly released code
+Take Hostage Script Made By: rubbertoe98
+Edited & Patched By: Vyast
 
-Feel free to make improvements with PRs
-
-
-My personal dev discord
-https://discord.gg/dnZTpUh
+Instructions on how to use:
+Type /takehostage, a valid weapon is needed(Add or remove weapons in client.lua)
+Then press G to release the hostage or H to kill the hostage!
