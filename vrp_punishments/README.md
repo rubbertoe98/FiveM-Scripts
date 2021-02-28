@@ -56,9 +56,9 @@ end
 ```
 
 ###### 5) Place sv_warningsystem.lua in vrp/modules/ and cl_warningsystem.lua in vrp/client/
+###### 6) Place cfg_warningsystem.lua in vrp/cfg/
 
-###### 6) Update your vrp/__resource.lua by putting adding the file names cl_warningsystem.lua & sv_warningsystem.lua in the appropriate section
-
+###### 7) Update your vrp/__resource.lua by putting adding the file names cl_warningsystem.lua & sv_warningsystem.lua in the appropriate section
 ## How to use:
 
 * F10 to open up the warning sytem

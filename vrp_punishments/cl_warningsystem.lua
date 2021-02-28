@@ -1,31 +1,26 @@
 --type,duration(hours),admin_name,date,reason
-CMGWarnings = {
+local CMGWarnings = {
 	[0] = {"Ban","48","Robbster","10-10-19","You VDM'd x2"},
 	[1] = {"Warning","24","Rob","1-10-19","You VDM'd x4"},
 }
 
-showWarningSystem = false
+local showWarningSystem = false
 
-xoffset = 0.031
-rowcounter = 0
-warningColourR = 0
-warningColourG = 0
-warningColourB = 0
+local xoffset = 0.031
+local rowcounter = 0
+local warningColourR = 0
+local warningColourG = 0
+local warningColourB = 0
 
--- RegisterCommand("tempwarn",function()
-	-- showWarningSystem = not showWarningSystem
--- end)
 
 RegisterNetEvent("CMG:showWarningsOfUser")
 AddEventHandler("CMG:showWarningsOfUser",function(cmgwarningstables)
-	print("got to showWarningsOfUser")
 	showWarningSystem = true
 	CMGWarnings = cmgwarningstables
 end)
 
 RegisterNetEvent("CMG:recievedRefreshedWarningData")
 AddEventHandler("CMG:recievedRefreshedWarningData",function(cmgwarningstables)
-	print("got to recievedRefreshedWarningData")
 	CMGWarnings = cmgwarningstables
 end)
 
@@ -33,7 +28,6 @@ end)
 Citizen.CreateThread(function()
 	while true do
 		if IsControlJustPressed(0,57) then
-			print("toggling warning system")
 			showWarningSystem = not showWarningSystem
 			if showWarningSystem then
 				TriggerServerEvent("CMG:refreshWarningSystem")
@@ -93,10 +87,9 @@ RegisterCommand("warn",function()
 	--get ID
 	--get warning msg
 	--send to server to update the database
-	userIDtoWarn = getWarningUserID()
-	userWarningMessage = getWarningUserMsg()
-	
-	TriggerServerEvent("CMG:warnPlayer",tonumber(userIDtoWarn),GetPlayerName(PlayerId()),userWarningMessage)
+	local target_id = getWarningUserID()
+	local warning_reason = getWarningUserMsg()
+	TriggerServerEvent("CMG:warnPlayer",tonumber(target_id),GetPlayerName(PlayerId()),warning_reason)
 end)
 
 function getWarningUserID()
