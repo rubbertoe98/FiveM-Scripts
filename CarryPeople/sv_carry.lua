@@ -6,10 +6,15 @@ local carried = {}
 RegisterServerEvent("CarryPeople:sync")
 AddEventHandler("CarryPeople:sync", function(targetSrc)
 	local source = source
-
-	TriggerClientEvent("CarryPeople:syncTarget", targetSrc, source)
-	carrying[source] = targetSrc
-	carried[targetSrc] = source
+	local sourcePed = GetPlayerPed(source)
+    local sourceCoords = GetEntityCoords(sourcePed)
+	local targetPed = GetPlayerPed(targetSrc)
+    local targetCoords = GetEntityCoords(targetPed)
+	if #(sourceCoords - targetCoords) <= 3.0 then 
+		TriggerClientEvent("CarryPeople:syncTarget", targetSrc, source)
+		carrying[source] = targetSrc
+		carried[targetSrc] = source
+	end
 end)
 
 RegisterServerEvent("CarryPeople:stop")
