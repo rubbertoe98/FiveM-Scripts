@@ -23,9 +23,11 @@ end)
 RegisterServerEvent("TakeHostage:killHostage")
 AddEventHandler("TakeHostage:killHostage", function(targetSrc)
 	local source = source
-	TriggerClientEvent("TakeHostage:killHostage", targetSrc, source)
-	takingHostage[source] = nil
-	takenHostage[targetSrc] = nil
+	if takenHostage[source] then 
+		TriggerClientEvent("TakeHostage:killHostage", targetSrc, source)
+		takingHostage[source] = nil
+		takenHostage[targetSrc] = nil
+	end
 end)
 
 RegisterServerEvent("TakeHostage:stop")
