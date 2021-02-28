@@ -6,10 +6,15 @@ local beingPiggybacked = {}
 RegisterServerEvent("Piggyback:sync")
 AddEventHandler("Piggyback:sync", function(targetSrc)
 	local source = source
-
-	TriggerClientEvent("Piggyback:syncTarget", targetSrc, source)
-	piggybacking[source] = targetSrc
-	beingPiggybacked[targetSrc] = source
+	local sourcePed = GetPlayerPed(source)
+    	local sourceCoords = GetEntityCoords(sourcePed)
+	local targetPed = GetPlayerPed(targetSrc)
+    	local targetCoords = GetEntityCoords(targetPed)
+	if #(sourceCoords - targetCoords) <= 3.0 then 
+		TriggerClientEvent("Piggyback:syncTarget", targetSrc, source)
+		piggybacking[source] = targetSrc
+		beingPiggybacked[targetSrc] = source
+	end
 end)
 
 RegisterServerEvent("Piggyback:stop")
