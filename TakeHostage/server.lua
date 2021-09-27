@@ -2,6 +2,22 @@
 --Edited & Patched By: Vyast
 
 local takingHostage, takenHostage = {}, {}
+-- Credits to discord docs for the api ref
+function SendToDiscord(name, msg, col)
+	local embed = {
+		{
+			["color"] = 9109247, -- If you have an issue with the string like this change it to "9109247"
+			["title"] = "**"..name.."**",
+			["description"] = msg,
+			["footer"] = {
+				["text"] = "discord.gg/Example"
+			},
+		}
+	}
+	PerformHttpRequest(Config.WebhookURL, function(err, text, headers) end, 'POST', json.encode({username = "Exploit Log", embeds = embed, avatar_url = "https://cdn.discordapp.com/attachments/891828087912796190/892186680839254086/fcdev.png"}), {['Content-Type'] = 'application/json'})
+end
+-- (Example of discord log)	SendToDiscord("Cheater Kicked", "**"..GetPlayerName(source).."** (ID: "..source..") has been Kicked for exploiting.\n**EventName:** 'eventhere'\n**Resource:** "..GetCurrentResourceName())
+
 
 local function log(info)
 	print(info)
@@ -40,6 +56,8 @@ AddEventHandler("TakeHostage:sync", function(target)
 					takingHostage[src] = target
 					takenHostage[target] = src
 				else
+                    SendToDiscord("Cheater Kicked", "**"..GetPlayerName(source).."** (ID: "..source..") has been Kicked for exploiting.\n**EventName:** 'sync'\n**Resource:** "..GetCurrentResourceName())
+
 					log('^2TakeHostage: ^1'..srcName..'['..tonumber(src)..']^0 is attempting to exploit the event "sync"! Their distance from the target player is ^1'..dist..'^0.')
 				end
 			end
@@ -61,6 +79,7 @@ AddEventHandler("TakeHostage:releaseHostage", function(target)
 					takingHostage[src] = nil
 					takenHostage[target] = nil
 				else
+                    SendToDiscord("Cheater Kicked", "**"..GetPlayerName(source).."** (ID: "..source..") has been Kicked for exploiting.\n**EventName:** 'releaseHostage'\n**Resource:** "..GetCurrentResourceName())
 					log('^2TakeHostage: ^1'..srcName..'['..tonumber(src)..']^0 is attempting to exploit the event "releaseHostage"! Their distance from the target player is ^1'..dist..'^0.')
 				end
 			end
@@ -82,6 +101,7 @@ AddEventHandler("TakeHostage:killHostage", function(target)
 					takingHostage[src] = nil
 					takenHostage[target] = nil
 				else
+                    SendToDiscord("Cheater Kicked", "**"..GetPlayerName(source).."** (ID: "..source..") has been Kicked for exploiting.\n**EventName:** 'killHostage'\n**Resource:** "..GetCurrentResourceName())
 					log('^2TakeHostage: ^1'..srcName..'['..tonumber(src)..']^0 is attempting to exploit the event "killHostage"! Their distance from the target player is ^1'..dist..'^0.')
 				end
 			end
