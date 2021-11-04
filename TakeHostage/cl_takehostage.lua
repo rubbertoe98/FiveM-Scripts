@@ -97,7 +97,7 @@ function callTakeHostage()
 	end
 
 	if not canTakeHostage then 
-		drawNativeNotification("You need a pistol with ammo to take a hostage at gunpoint!")
+		TriggerClientEvent('mythic_notify:client:SendAlert', source, { type = 'inform', text = 'You require a weapon of harm to perform this.', length = 2500, style = { ['background-color'] = '#FF0000', ['color'] = '#FFFFF' } })
 	end
 
 	if not takeHostage.InProgress and canTakeHostage then			
@@ -112,10 +112,10 @@ function callTakeHostage()
 				ensureAnimDict(takeHostage.agressor.animDict)
 				takeHostage.type = "agressor"
 			else
-				drawNativeNotification("~r~No one nearby to take as hostage!")
+				TriggerClientEvent('mythic_notify:client:SendAlert', source, { type = 'inform', text = 'No one nearby to take hostage.', length = 2500, style = { ['background-color'] = '#FF0000', ['color'] = '#FFFFF' } })
 			end
 		else
-			drawNativeNotification("~r~No one nearby to take as hostage!")
+			TriggerClientEvent('mythic_notify:client:SendAlert', source, { type = 'inform', text = 'No one nearby to take hostage.', length = 2500, style = { ['background-color'] = '#FF0000', ['color'] = '#FFFFF' } })
 		end
 	end
 end 
