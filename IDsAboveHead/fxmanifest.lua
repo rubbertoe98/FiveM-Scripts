@@ -7,3 +7,4 @@ description 'IDsAboveHead'
 version '1.0.0'
 
 client_script "cl_idsabovehead.lua"
+shared_script "config.lua
