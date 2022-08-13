@@ -1,4 +1,14 @@
-local disPlayerNames = 5
+displayid = true
+RegisterCommand(Config.ToggleCommand, function(source, args, rawCommand)
+    if displayid == true then
+        displayid = false
+        TriggerEvent('chatMessage', '', {255, 255, 255}, Config.Prefix..' ^3You have ^5disabled ^3IDs above head.')
+    elseif displayid == false then
+        displayid = true
+        TriggerEvent('chatMessage', '', {255, 255, 255}, Config.Prefix..' ^3You have ^5enabled ^3IDs above head.')
+    end
+end)
+
 local playerDistances = {}
 
 local function DrawText3D(position, text, r,g,b) 
@@ -39,10 +49,16 @@ Citizen.CreateThread(function()
                     if playerDistances[id] < disPlayerNames then
                         local targetPedCords = GetEntityCoords(targetPed)
                         if NetworkIsPlayerTalking(id) then
-                            DrawText3D(targetPedCords, GetPlayerServerId(id), 247,124,24)
-                            DrawMarker(27, targetPedCords.x, targetPedCords.y, targetPedCords.z-0.97, 0, 0, 0, 0, 0, 0, 1.001, 1.0001, 0.5001, 173, 216, 230, 100, 0, 0, 0, 0)
+                            if displayid then
+                                DrawText3D(targetPedCords, GetPlayerServerId(id), 52, 152, 219)
+                            end
+                            if Config.Blip then
+                                DrawMarker(27, targetPedCords.x, targetPedCords.y, targetPedCords.z-0.97, 0, 0, 0, 0, 0, 0, 1.001, 1.0001, 0.5001, 173, 216, 230, 100, 0, 0, 0, 0)
+                            end
                         else
-                            DrawText3D(targetPedCords, GetPlayerServerId(id), 255,255,255)
+                            if AlwaysDisplayID then
+                                DrawText3D(targetPedCords, GetPlayerServerId(id), 255,255,255)
+                            end
                         end
                     end
                 end
