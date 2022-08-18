@@ -1,12 +1,7 @@
 displayid = true
 RegisterCommand(Config.ToggleCommand, function(source, args, rawCommand)
-    if displayid == true then
-        displayid = false
-        TriggerEvent('chatMessage', '', {255, 255, 255}, Config.Prefix..' ^3You have ^5disabled ^3IDs above head.')
-    elseif displayid == false then
-        displayid = true
-        TriggerEvent('chatMessage', '', {255, 255, 255}, Config.Prefix..' ^3You have ^5enabled ^3IDs above head.')
-    end
+    displayid = not displayid
+    TriggerEvent("chatMessage", "", {255,255,255}, Config.Prefix.." ^3You have ^5"..(displayid and "enabled" or "disabled").." ^3IDs above head.")
 end)
 
 local playerDistances = {}
