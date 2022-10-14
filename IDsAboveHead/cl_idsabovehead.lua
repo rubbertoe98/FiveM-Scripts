@@ -1,69 +1,112 @@
-local disPlayerNames = 5
-local playerDistances = {}
-
-local function DrawText3D(position, text, r,g,b) 
-    local onScreen,_x,_y=World3dToScreen2d(position.x,position.y,position.z+1)
-    local dist = #(GetGameplayCamCoords()-position)
- 
-    local scale = (1/dist)*2
-    local fov = (1/GetGameplayCamFov())*100
-    local scale = scale*fov
-   
-    if onScreen then
-        if not useCustomScale then
-            SetTextScale(0.0*scale, 0.55*scale)
-        else 
-            SetTextScale(0.0*scale, customScale)
-        end
-        SetTextFont(0)
-        SetTextProportional(1)
-        SetTextColour(r, g, b, 255)
-        SetTextDropshadow(0, 0, 0, 0, 255)
-        SetTextEdge(2, 0, 0, 0, 150)
-        SetTextDropShadow()
-        SetTextOutline()
-        SetTextEntry("STRING")
-        SetTextCentre(1)
-        AddTextComponentString(text)
-        DrawText(_x,_y)
-    end
-end
-
-Citizen.CreateThread(function()
-	Wait(500)
-    while true do
-        for _, id in ipairs(GetActivePlayers()) do
-            local targetPed = GetPlayerPed(id)
-            if targetPed ~= PlayerPedId() then
-                if playerDistances[id] then
-                    if playerDistances[id] < disPlayerNames then
-                        local targetPedCords = GetEntityCoords(targetPed)
-                        if NetworkIsPlayerTalking(id) then
-                            DrawText3D(targetPedCords, GetPlayerServerId(id), 247,124,24)
-                            DrawMarker(27, targetPedCords.x, targetPedCords.y, targetPedCords.z-0.97, 0, 0, 0, 0, 0, 0, 1.001, 1.0001, 0.5001, 173, 216, 230, 100, 0, 0, 0, 0)
-                        else
-                            DrawText3D(targetPedCords, GetPlayerServerId(id), 255,255,255)
+local a = 7
+local b = {}
+local c = true
+local d = {}
+Citizen.CreateThread(
+    function()
+        Wait(500)
+        while true do
+            if not globalHideUi then
+                if c then
+                    local e = CMG.getPlayerPed()
+                    for f, g in ipairs(GetActivePlayers()) do
+                        local h = GetPlayerPed(g)
+                        if h ~= e then
+                            if b[g] then
+                                if b[g] < a then
+                                    local i = d[g]
+                                    if NetworkIsPlayerTalking(g) then
+                                        SetMpGamerTagAlpha(i, 4, 255)
+                                        SetMpGamerTagColour(i, 0, 9)
+                                        SetMpGamerTagColour(i, 4, 0)
+                                        SetMpGamerTagVisibility(i, 4, true)
+                                    else
+                                        SetMpGamerTagColour(i, 0, 0)
+                                        SetMpGamerTagColour(i, 4, 0)
+                                        SetMpGamerTagVisibility(i, 4, false)
+                                    end
+                                end
+                            end
                         end
                     end
                 end
             end
+            Citizen.Wait(0)
         end
-        Citizen.Wait(0)
     end
-end)
-
-Citizen.CreateThread(function()
-    while true do
-        local playerPed = PlayerPedId()
-        local playerCoords = GetEntityCoords(playerPed)
-        
-        for _, id in ipairs(GetActivePlayers()) do
-            local targetPed = GetPlayerPed(id)
-            if targetPed ~= playerPed then
-                local distance = #(playerCoords-GetEntityCoords(targetPed))
-				playerDistances[id] = distance
+)
+Citizen.CreateThread(
+    function()
+        while true do
+            b = {}
+            local e = CMG.getPlayerPed()
+            local j = CMG.getPlayerCoords()
+            for f, g in ipairs(GetActivePlayers()) do
+                local k = GetPlayerPed(g)
+                local l = GetPlayerServerId(g)
+                if k ~= e and (IsEntityVisible(k) or not CMG.clientGetPlayerIsStaff(l)) then
+                    local m = GetEntityCoords(k)
+                    b[g] = #(j - m)
+                end
+            end
+            if not CMG.isStaffedOn() then
+                a = 7
+            end
+            Citizen.Wait(1000)
+        end
+    end
+)
+Citizen.CreateThread(
+    function()
+        while true do
+            for f, g in ipairs(GetActivePlayers()) do
+                local n = b[g]
+                if n and n < a and c then
+                    d[g] = CreateFakeMpGamerTag(GetPlayerPed(g), GetPlayerServerId(g), false, false, "", 0)
+                    SetMpGamerTagVisibility(d[g], 3, true)
+                elseif d[g] then
+                    RemoveMpGamerTag(d[g])
+                    d[g] = nil
+                end
+                Wait(0)
+            end
+            Wait(0)
+        end
+    end
+)
+SetMpGamerTagsUseVehicleBehavior(false)
+RegisterCommand(
+    "farids",
+    function(o, p, q)
+        if CMG.getStaffLevel() > 2 and CMG.isStaffedOn() then
+            local r = p[1]
+            if r ~= nil and tonumber(r) then
+                a = tonumber(r) + 000.1
+                SetMpGamerTagsVisibleDistance(a)
+            else
+                tvRP.notify("~r~Please enter a valid range! (/farids [range])")
             end
         end
-        Wait(1000)
     end
-end)
+)
+RegisterCommand(
+    "faridsreset",
+    function(o, p, q)
+        if CMG.getStaffLevel() > 2 then
+            a = 7
+            SetMpGamerTagsVisibleDistance(100.0)
+        end
+    end
+)
+RegisterCommand(
+    "hideids",
+    function()
+        c = false
+    end
+)
+RegisterCommand(
+    "showids",
+    function()
+        c = true
+    end
+)
